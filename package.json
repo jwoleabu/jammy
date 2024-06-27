@@ -1,0 +1,28 @@
+{
+  "name": "jammy",
+  "version": "1.0.0",
+  "description": "A discord bot for creating and managing game jam events",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node .",
+    "dlocal": "tsx src/deploy/deployLocal.ts",
+    "dglobal": "tsx src/deploy/deployLocal.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5",
+    "playwright": "^1.45.0"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.35",
+    "@types/node": "^20.14.9",
+    "tsx": "^4.15.7",
+    "typescript": "^5.5.2"
+  }
+}
