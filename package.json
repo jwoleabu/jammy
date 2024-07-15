@@ -9,7 +9,9 @@
     "build": "tsc",
     "start": "node .",
     "dlocal": "tsx src/deploy/deployLocal.ts",
-    "dglobal": "tsx src/deploy/deployLocal.ts"
+    "dglobal": "tsx src/deploy/deployLocal.ts",
+    "test": "tsx src/function/create.ts"
+
   },
   "author": "",
   "license": "ISC",
@@ -17,7 +19,8 @@
     "cheerio": "^1.0.0-rc.12",
     "discord.js": "^14.15.3",
     "dotenv": "^16.4.5",
-    "playwright": "^1.45.0"
+    "playwright": "^1.45.0",
+    "sharp": "^0.33.4"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.35",
