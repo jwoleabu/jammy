@@ -1,7 +1,7 @@
 import {Guild, GuildScheduledEventEntityType, GuildScheduledEventManager, GuildScheduledEventPrivacyLevel, PermissionFlagsBits, SlashCommandBuilder} from "discord.js"
 import { config } from "dotenv";
-import { getPage } from "../../function/getPage.js";
-import { BotCommand, GameJam } from '../../types.js';
+import { type BotCommand, GameJam, DataScraper } from '../../types.js';
+import { firefox } from "playwright";
 const command: BotCommand = {
 	cooldown: 2,
 	data: new SlashCommandBuilder()
@@ -16,36 +16,41 @@ const command: BotCommand = {
         config()
         const urlString = interaction.options.getString('link', true);
         let url: URL | undefined;
-        let gameJam: GameJam | undefined;
+        let gameJam: GameJam;
         url = new URL(urlString);
 
-        (async () => {
-            try {
-                gameJam = await getPage(url);
-                console.log(gameJam);
-                const guild = interaction.guild   
-                if (!guild){
-                    await interaction.reply({ content: 'This command must be used in a server.', ephemeral: true });
-                    return;
-                }
+        const guild = interaction.guild   
+        if (!guild){
+            await interaction.reply({ content: 'This command must be used in a server.', ephemeral: true });
+            return;
+        }
+        interaction.deferReply();
+        const browser = await firefox.launch();
+        const datascraper = new DataScraper(browser);
+        const jam = await datascraper.getPage(url);
+
+        if(jam != undefined){
+            try{
                 await guild.scheduledEvents.create({
-                    name: gameJam.title,
-                    scheduledStartTime: gameJam.startDate,
-                    scheduledEndTime: gameJam.endDate,
+                    name: jam.title,
+                    scheduledStartTime: jam.startDate,
+                    scheduledEndTime: jam.endDate,
                     privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
                     entityType: GuildScheduledEventEntityType.External,
                     entityMetadata: {
-                      location: url.toString(),
+                        location: url.toString(),
                     },
-                    description: `Join us for the ${gameJam.title} game jam!`,
-                    image: gameJam.image
-                  });
-            } catch (err) {
-                console.error(err);
+                    description: `Join us for the ${jam.title} game jam!`,
+                    image: jam.image
+                });
             }
-            })();
-
-            await interaction.reply({content: `Command executed`, ephemeral: true });
+            catch(error){
+                throw new Error("Error creating guild event",error as Error)
+            }
+            finally{
+                await interaction.followUp({content: `Command complete`, ephemeral: true });
+            }
+        }
         }
     };
 
