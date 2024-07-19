@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename)
 config();
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildScheduledEvents],
     allowedMentions: { parse: [] }
 }) as CustomClient;
 
