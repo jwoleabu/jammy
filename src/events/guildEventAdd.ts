@@ -12,6 +12,7 @@ export default {
             return;
         }
         const roleManager = guild.roles;
+        console.log(`${guilscheduledEvent.name} has interaction add by ${user.tag}`)
         const jamRole = roleManager.cache.find(role => role.name === guilscheduledEvent.name);
         if(!jamRole || jamRole.client !== guilscheduledEvent.client){
             return;
