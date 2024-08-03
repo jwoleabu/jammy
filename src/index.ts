@@ -1,91 +1,78 @@
-import { Client, Collection, CommandInteraction, Events, GatewayIntentBits, SlashCommandBuilder} from 'discord.js';
-import {config} from "dotenv";
-import { fileURLToPath } from 'url';
-import fs from 'fs'
-import path from 'path'
-import { CustomClient, BotCommand } from './types.js';
+import {
+  Client,
+  Collection,
+  Events,
+  GatewayIntentBits,
+  SlashCommandBuilder,
+} from "discord.js";
+import { config } from "dotenv";
+import { fileURLToPath } from "url";
+import fs from "fs";
+import path from "path";
+import { CustomClient, BotCommand } from "./types.js";
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename)
+const __dirname = path.dirname(__filename);
 
 config();
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildScheduledEvents],
-    allowedMentions: { parse: [] }
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildScheduledEvents],
+  allowedMentions: { parse: [] },
 }) as CustomClient;
 
 client.cooldowns = new Collection();
 client.commands = new Collection();
-const foldersPath = path.join(__dirname, 'commands');
+const foldersPath = path.join(__dirname, "commands");
 const commandFolders = fs.readdirSync(foldersPath);
 
 for (const folder of commandFolders) {
-	const commandsPath = path.join(foldersPath, folder);
-	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-	for (const file of commandFiles) {
-		const filePath = path.join(commandsPath, file);
-        import(filePath).then(commandModule => {
-            const command: BotCommand = commandModule.default
-            if ('data' in command && 'execute' in command) {
-                client.commands.set(command.data.name, command);
-            } else {
-                console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
-            }
-        }).catch(error => {
-            console.error(`Error importing command from ${filePath}:`, error);
-        });
-	}
+  const commandsPath = path.join(foldersPath, folder);
+  const commandFiles = fs
+    .readdirSync(commandsPath)
+    .filter((file) => file.endsWith(".js") || file.endsWith("ts"));
+  for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file);
+    import(filePath)
+      .then((commandModule) => {
+        const command: BotCommand = commandModule.default;
+        if ("data" in command && "execute" in command) {
+          client.commands.set(command.data.name, command);
+        } else {
+          console.log(
+            `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`
+          );
+        }
+      })
+      .catch((error) => {
+        console.error(`Error importing command from ${filePath}:`, error);
+      });
+  }
 }
+console.log("All commands loaded")
 
-client.on(Events.InteractionCreate, async interaction => {
-	if (!interaction.isChatInputCommand()) return;
-    // console.log(interaction)
-	const command = client.commands.get(interaction.commandName);
+const eventsPath = path.join(__dirname, "events");
+const eventFiles = fs
+  .readdirSync(eventsPath)
+  .filter((file) => file.endsWith(".js") || file.endsWith(".ts"));
 
-	if (!command) {
-		console.error(`No command matching ${interaction.commandName} was found.`);
-		return;
-	}
+for (const file of eventFiles) {
+  const filePath = path.join(eventsPath, file);
 
-	const { cooldowns } = interaction.client as CustomClient;
+  import(filePath)
+    .then((discordEvent) => {
+      const event = discordEvent.default;
+      if (event.once) {
+        client.once(event.name, (...args) => event.execute(...args));
+      } else {
+        client.on(event.name, (...args) => event.execute(...args));
+      }
+    })
+    .catch((error) => {
+      console.error(`Error importing command from ${filePath}:`, error);
+    });
+}
+console.log("All events loaded")
 
-	if (!cooldowns.has(command.data.name)) {
-		cooldowns.set(command.data.name, new Collection());
-	}
-
-	const now = Date.now();
-	const timestamps = cooldowns.get(command.data.name);
-	if (!timestamps) return;
-	const defaultCooldownDuration = 3;
-	const cooldownAmount = (command.cooldown ?? defaultCooldownDuration) * 1000;
-
-	if (timestamps.has(interaction.user.id)) {
-		const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
-
-		if (now < expirationTime) {
-			const expiredTimestamp = Math.round(expirationTime / 1000);
-			return interaction.reply({ content: `Please wait, you are on a cooldown for \`${command.data.name}\`. You can use it again <t:${expiredTimestamp}:R>.`, ephemeral: true });
-		}
-	}
-
-	timestamps.set(interaction.user.id, now);
-	setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
-
-	try {
-		await command.execute(interaction);
-	} catch (error) {
-		console.error(error);
-		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-		} else {
-			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-		}
-	}
-});
-
-client.on(Events.ClientReady, c =>{
-    console.log(`Bot online as ${c.user.username}`);
-});
 
 client.login(process.env.TOKEN);

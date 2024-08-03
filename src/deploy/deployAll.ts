@@ -18,7 +18,7 @@ const commandFolders = fs.readdirSync(foldersPath);
 const loadCommands = async () => {
     for (const folder of commandFolders) {
         const commandsPath = path.join(foldersPath, folder);
-        const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+        const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js') || file.endsWith('ts'));
 
         const imports = commandFiles.map(async (file) => {
             const filePath = path.join(commandsPath, file);
