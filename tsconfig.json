@@ -22,7 +22,7 @@
       "lib": ["es2022", "dom"]
     },
     
-    "include": ["src", "src/events/.ts"],
+    "include": ["src"],
     "exclude": ["node_modules"]
 }
   
