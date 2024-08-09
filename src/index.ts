@@ -3,6 +3,7 @@ import {
   Collection,
   Events,
   GatewayIntentBits,
+  Partials,
   SlashCommandBuilder,
 } from "discord.js";
 import { config } from "dotenv";
@@ -17,7 +18,8 @@ const __dirname = path.dirname(__filename);
 config();
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildScheduledEvents],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildScheduledEvents, GatewayIntentBits.GuildMembers],
+  partials: [Partials.GuildScheduledEvent, Partials.User],
   allowedMentions: { parse: [] },
 }) as CustomClient;
 
