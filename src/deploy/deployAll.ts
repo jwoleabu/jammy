@@ -11,8 +11,10 @@ config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const commands: ReturnType<SlashCommandBuilder['toJSON']>[] = [];
-const foldersPath = path.join(__dirname, 'commands');
+const commands : ReturnType<SlashCommandBuilder['toJSON']>[] = [];
+const parentDir = path.resolve(__dirname, '..');
+const foldersPath = path.join(parentDir, 'commands');
+console.log(foldersPath)
 const commandFolders = fs.readdirSync(foldersPath);
 
 const loadCommands = async () => {
