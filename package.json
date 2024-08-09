@@ -9,7 +9,7 @@
     "build": "tsc",
     "start": "node .",
     "dlocal": "tsx src/deploy/deployLocal.ts",
-    "dglobal": "tsx src/deploy/deployLocal.ts",
+    "dglobal": "tsx src/deploy/deployAll.ts",
     "test": "tsx src/function/create.ts"
 
   },
