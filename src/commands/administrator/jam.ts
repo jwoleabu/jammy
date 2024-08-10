@@ -1,11 +1,13 @@
 import {
+  GuildScheduledEventStatus,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
 import { config } from "dotenv";
+import { DataScraper } from "../../service/DataScraper.js";
+import { GameJam } from "../../service/GameJam.js";
 import {
   type BotCommand,
-  DataScraper,
   URLValidator,
   HostnameValidator,
   GuildScheduledEventFactory,
@@ -68,23 +70,32 @@ const command: BotCommand = {
 
     if (jam != undefined) {
       const scheduledEventsManager = GuildScheduledEventFactory.create(guild);
-      const roleManager = guild.roles
+      const roleManager = guild.roles;
       try {
-        await scheduledEventsManager.create(jam.toScheduledEvent());
-
-      } 
-      catch(error){
-        throw new Error("Error creating guild event",error as Error)
+        switch (jam.state) {
+          case GuildScheduledEventStatus.Scheduled:
+            console.log(`jam is scheduled ${jam.state}`);
+            await scheduledEventsManager.create(jam.toScheduledEvent());
+            break;
+          case GuildScheduledEventStatus.Active:
+            console.log(`jam is active ${jam.state}`);
+            await scheduledEventsManager.create(jam.toScheduledEvent(true));
+            break;
+          case GuildScheduledEventStatus.Completed:
+            console.log(`jam is completed ${jam.state}`);
+            await interaction.followUp(`THe gamejam ${jam.title} has ended :/`);
+            return;
+        }
+      } catch (error) {
+        throw new Error("Error creating guild event", error as Error);
       }
-      try{
+      try {
         await roleManager.create({
-          name: jam.title
-        })
-      }
-      catch(error){
-        throw new Error("Error creating guild event", error as Error)
-      }
-      finally {
+          name: jam.title,
+        });
+      } catch (error) {
+        throw new Error("Error creating guild event", error as Error);
+      } finally {
         await interaction.followUp(
           `Command run sucessfuly, the gamejam ${jam.title} was created`
         );
