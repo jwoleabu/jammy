@@ -27,7 +27,8 @@ const loadCommands = async () => {
             const filePath = path.join(commandsPath, file);
             try {
                 const command : BotCommand = await import(filePath).then(mod => mod.default);
-                console.log(command)
+                command.data.setName(`${command.data.name}_dev`);
+                console.log(command.data.name);
                 if ('data' in command && 'execute' in command) {
                     commands.push(command.data.toJSON());
                 } else {
